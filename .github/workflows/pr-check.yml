@@ -15,8 +15,8 @@ jobs:
 
       - name: Install Trufflehog
         run: |
-          curl -sSL https://github.com/trufflesecurity/trufflehog/releases/latest/download/trufflehog_$(uname -s)_$(uname -m).tar.gz -o trufflehog.tar.gz
-          tar -xzf trufflehog.tar.gz
+          curl -sSL https://github.com/trufflesecurity/trufflehog/releases/latest/download/trufflehog_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m) \
+            -o trufflehog
           chmod +x trufflehog
           sudo mv trufflehog /usr/local/bin/
 
