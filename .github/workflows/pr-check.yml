@@ -1,30 +1,26 @@
-name: Trivy Secret Scan on PR
+name: Secret & Vulnerability Scan on PR
 
 on:
   pull_request:
     branches:
-      - main  # run only for PRs targeting main
+      - main  # Trigger when PR targets main branch
 
 jobs:
   trivy-scan:
     runs-on: ubuntu-latest
-
     steps:
+      # 1. Checkout the code from the PR branch
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Install Trivy
-        run: |
-          # Install dependencies
-          sudo apt-get update -y
-          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
-
-          # Add Trivy apt repo
-          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo gpg --dearmor -o /usr/share/keyrings/trivy.gpg
-          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
-          sudo apt-get update -y
-          sudo apt-get install -y trivy
-
-      - name: Run Trivy Secret Scan
-        run: |
-          trivy fs --security-checks secret --exit-code 1 --no-progress .
+      # 2. Install Trivy
+      - name: Set up Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs          # Filesystem scan
+          vuln-type: all         # Scan OS packages and app dependencies
+          secret-type: all       # Scan for secrets (API keys, tokens, etc.)
+          format: table
+          exit-code: 1           # Fail workflow if vulnerabilities or secrets found
+          ignore-unfixed: false  # Optional, don't ignore vulnerabilities
+          severity: CRITICAL,HIGH,MEDIUM  # Only fail on these severities
