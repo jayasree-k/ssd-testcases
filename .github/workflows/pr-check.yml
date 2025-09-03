@@ -2,9 +2,7 @@ name: Trivy Secret Scan
 
 on:
   pull_request:
-    branches: 
-      - main
-      - dev*
+    branches: [ main, dev ]
 
 jobs:
   secret-scan:
@@ -21,8 +19,8 @@ jobs:
       - name: Run Trivy Secret Scan
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: fs           # file system scan
+          scan-type: fs           # scan file system
           scanners: secret        # run secret scanner
-          format: table           # optional: table/json/sarif
-          exit-code: 1            # fail on findings
+          format: table           # table output (can also be json/sarif)
+          exit-code: 1            # fail if any secrets found
           ignore-unfixed: true
