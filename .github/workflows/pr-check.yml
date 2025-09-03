@@ -1,4 +1,4 @@
-name: Secret Scan on PR
+name: Secret Scan on PR (Trivy)
 
 on:
   pull_request:
@@ -13,13 +13,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Trufflehog
+      - name: Install Trivy
         run: |
-          curl -sSL https://github.com/trufflesecurity/trufflehog/releases/latest/download/trufflehog_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m) \
-            -o trufflehog
-          chmod +x trufflehog
-          sudo mv trufflehog /usr/local/bin/
+          sudo apt-get update -y
+          sudo apt-get install -y wget
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m).tar.gz -O trivy.tar.gz || true
+          if [ -f trivy.tar.gz ]; then
+            tar -xzf trivy.tar.gz trivy
+            sudo mv trivy /usr/local/bin/
+          else
+            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+            sudo mv ./trivy /usr/local/bin/
+          fi
 
-      - name: Run Trufflehog scan
+      - name: Run Trivy Secret Scan
         run: |
-          trufflehog filesystem --directory . --fail
+          trivy fs --security-checks secret --exit-code 1 --no-progress .
