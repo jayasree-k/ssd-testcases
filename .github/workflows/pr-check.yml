@@ -1,0 +1,25 @@
+name: Secret Scan on PR
+
+on:
+  pull_request:
+    branches:
+      - main   # run only when PR targets main branch
+
+jobs:
+  scan-secrets:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Trufflehog
+        run: |
+          curl -sSL https://github.com/trufflesecurity/trufflehog/releases/latest/download/trufflehog_linux_amd64 \
+            -o trufflehog
+          chmod +x trufflehog
+          sudo mv trufflehog /usr/local/bin/
+
+      - name: Run Trufflehog scan
+        run: |
+          trufflehog filesystem --directory . --fail
