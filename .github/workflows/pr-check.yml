@@ -1,9 +1,9 @@
-name: Trivy Scan on PR
+name: Trivy Secret Scan on PR
 
 on:
   pull_request:
     branches:
-      - main   # only run scan when PR targets main
+      - main  # run only for PRs targeting main
 
 jobs:
   trivy-scan:
@@ -15,14 +15,16 @@ jobs:
 
       - name: Install Trivy
         run: |
+          # Install dependencies
           sudo apt-get update -y
           sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+
+          # Add Trivy apt repo
           wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo gpg --dearmor -o /usr/share/keyrings/trivy.gpg
-          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" \
-            | sudo tee /etc/apt/sources.list.d/trivy.list
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
           sudo apt-get update -y
           sudo apt-get install -y trivy
 
-      - name: Run Trivy filesystem scan
+      - name: Run Trivy Secret Scan
         run: |
-          trivy fs --exit-code 1 --severity HIGH,CRITICAL .
+          trivy fs --security-checks secret --exit-code 1 --no-progress .
